@@ -31,8 +31,11 @@ export class AuthService {
           lastName: true,
         },
       });
-      console.log({ createResult });
-      return createResult;
+      const payload = {
+        sub: createResult.id,
+        email: createResult.email,
+      };
+      return this.getJwtToken(payload);
     } catch (error) {
       throw new InternalServerErrorException('custom error message');
     }
@@ -47,14 +50,16 @@ export class AuthService {
         sub: user.id,
         email: user.email,
       };
-      const token = this.jwt.signAsync(payload, {
-        expiresIn: '15m',
-        secret: this.config.get('jwt_secret'),
-      });
-
-      return token;
+      return this.getJwtToken(payload);
     } catch (error) {
       throw new InternalServerErrorException('custom error message');
     }
+  }
+
+  private getJwtToken(jwtPayload: { sub: number; email: string }) {
+    return this.jwt.signAsync(jwtPayload, {
+      expiresIn: '15min',
+      secret: this.config.get('jwt_secret'),
+    });
   }
 }
